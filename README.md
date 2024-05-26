@@ -27,7 +27,7 @@ Easily set up a simple server on your ESP32
 
 ```boot.py```
 ```py
-from server_lw import Server
+from server import Server
 
 server = Server()
 
