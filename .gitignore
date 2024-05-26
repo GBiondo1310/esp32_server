@@ -1,0 +1,12 @@
+__pycache__
+venv
+tests
+*.egg-info
+scripts
+struct.json
+docs/*
+!dics/_build
+docs/_build/doctrees
+logs
+.vscode"
+playground
