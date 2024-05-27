@@ -17,8 +17,8 @@ Easily set up a simple server on your ESP32
 2. Modify SSID and PASSWORD in consts file
 3. Upload the two required files with:
     ```
-    ampy -p PORT put src/_consts_lw.py
-    ampy -p PORT put src/server_lw.py
+    ampy -p PORT put src/_consts.py
+    ampy -p PORT put src/server.py
     ```
 4. You're good to go
 
