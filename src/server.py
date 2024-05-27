@@ -93,7 +93,7 @@ class Server:
                 on_finish,
                 of_kw,
             )
-        except Exception as e:
+        except Exception:
             return (
                 INTERNAL_SERVER_ERROR,
                 ujson.dumps({"esit": "Internal server error"}),

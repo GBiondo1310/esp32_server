@@ -42,7 +42,7 @@ class Server:
         callback: object,
         status_code: str,
         content_type: str,
-        on_finish: object = None,
+        on_finish: str,
     ) -> None:
         """Adds an endpoint to the server
 
@@ -54,8 +54,7 @@ class Server:
         :type status_code: str
         :param content_type: Response content type
         :type content_type: str
-        :param on_finish: Function to call when connection has been closed, defaults to None
-        :type on_finish: object, optional
+        :param on_finish: A function to call after the response is sent
         """
         self.endpoints.update(
             {
@@ -110,6 +109,8 @@ class Server:
                 return (
                     NOT_FOUND,
                     ujson.dumps({"Esit": f"Endpoint not found: {endpoint}"}),
+                    None,
+                    None,
                 )
 
             callback = self.endpoints.get(endpoint).get("callback")
@@ -135,6 +136,8 @@ class Server:
             return (
                 INTERNAL_SERVER_ERROR,
                 ujson.dumps({"esit": "Internal server error"}),
+                None,
+                None,
             )
 
     def start(self):
