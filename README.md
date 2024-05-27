@@ -37,11 +37,17 @@ def callback1(**kw):
     for k, v in kw.items():
         print(f"{k} : {v}")
 
-    # NOTE: A return statement with return type str or dict is mandatory as it will be the body of the response.
+    # NOTE: If provided, the return statement will be the response body, otherwise the body will be empty according to the content type of the callback
 
     return {"esit":"ok"} 
 
-server.add_endpoint("/test_callback/", callback1, "200 OK", "application/json")
+def on_finish(**kw):
+    """Example function to call after response is sent"""
+    print("This happens after response is sent to the client")
+    for k, v in kw.items():
+        print(f"{k} : {v}")
+
+server.add_endpoint("/test_callback/", callback1, "200 OK", "application/json", on_finish)
 server.start()
 ```
 
@@ -49,7 +55,7 @@ To test that the server is running correctly:
 
 1. Connect to the newly created network
 
-2. Open up your browser and search for this URL: ```http://192.168.4.1/test_callback/?k1=v1&k2=v2&k3=v3```
+2. Open up your browser and search for this URL: ```http://192.168.4.1/test_callback/?k1=v1&k2=v2&k3=v3&of_k4=v4&of_5=v5```
 
 3. You should receive back ```{"esit":"ok"}``` from the callback1 function
 
@@ -75,6 +81,9 @@ To test that the server is running correctly:
     k1 : v1
     k2 : v2
     k3 : v3
+    This happens after response is sent to the client
+    k4 : v4
+    k5 : v5
     ```
     The last 3 lines are printed by the callback1 print statement
 
