@@ -86,7 +86,8 @@ To test that the server is running correctly:
     k4 : v4
     k5 : v5
     ```
-    The last 3 lines are printed by the callback1 print statement
+    - The first 3 lines are printed by the callback1 print statement
+    - The last 3 lines are printed by the on_finished print statements
 
 ## NOTES
 
