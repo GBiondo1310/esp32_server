@@ -104,6 +104,8 @@ To test that the server is running correctly:
 ## In future updates
 
 * Status codes quick references: To quickly pick a status code for the response
+* on_error function callback
+* on_not_found function callback
 
 ---
 
