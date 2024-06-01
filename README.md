@@ -15,7 +15,7 @@ Easily set up a simple server on your ESP32
 
 1. Connect your board and set it to BOOT mode;
 2. Modify SSID and PASSWORD in consts file
-3. Upload the two required files with:
+3. Upload the required files with:
     ```
     ampy -p PORT put src/_consts.py
     ampy -p PORT put src/endpoint.py
@@ -65,7 +65,7 @@ To test that the server is running correctly:
 
 2. Open up your browser and search for this URL: ```http://192.168.4.1/test_endpoint/?value=4```
 
-3. You should receive back ```{"esit":"4"}``` from the callback1 function
+3. You should receive back ```{"esit":"4"}``` from the endpoint_function function
 
 If the query parameter "value" is greater than 5, InternalServerError will be raised and status code 500 will be returned.
 Check out example folder for more examples
