@@ -14,12 +14,12 @@ class Endpoint:
     ):
         """Creates a new endpoint for the server
 
-        :param endpoint: The endpoint for the request
+        :param endpoint: The endpoint of the request
         :type endpoint: str
-        :param default_success_status_code: The default status code if function call is successfull,
+        :param default_success_status_code: The default status code if function call is successful,
         defaults to StatusCode._200
         :type default_success_status_code: str, optional
-        :param content_type: Content type of the response, defaults to "application/json"
+        :param content_type: Content type of ther response, defaults to "application/json"
         :type content_type: str, optional
         """
 
@@ -27,7 +27,7 @@ class Endpoint:
         self.content_type = content_type
         self.default_status_code = default_success_status_code
 
-    def __call__(self, function: object):
+    def __call__(self, function):
         """Decorator to quickly add the function to execute when the endpoint is requestes
 
         :Example usage:
@@ -38,25 +38,15 @@ class Endpoint:
         >>>     return "200 OK", {}
         >>>     # or
         >>>     return None, None
-        :NOTE: The inner function created needs to return wether
-        a tuple (str, dict) or a tuple (None, None) or a combination of them
+        :NOTE: The exception callback created needs to return a tuple (str, dict)
             * The first element of the tuple will be the response status code
             * The second element of the tuple will be the body of the response
 
+
         :param function: The function to execute
         :type function: Function"""
+
         self.inner_function = function
-
-    def add_exception(self, exception: Exception, callback: object):
-        """Adds a new handable exception
-
-        :param exception: The exception to handle
-        :type exception: Exception
-        :param callback: The function to call in case this exception happens
-        :type callback: object
-        """
-
-        self.exceptions.update({exception: callback})
 
     def on_exception(self, exception: Exception):
         """Decorator to quickly add an exception so there's no need to handle
@@ -67,29 +57,27 @@ class Endpoint:
         >>>
         >>> @e.on_exception(CustomException)
         >>> def exception_handler():
-        >>>     print("An exceptio occurred")
-        >>>     return None, None
-        >>>     # or
+        >>>     print("An exception occurred")
         >>>     return some_status_code, some_dictionary
 
-        :NOTE: The exception callback created needs to return wether
-        a tuple (str, dict) or a tuple (None, None) or a combination of them
+        :NOTE: The exception callback created needs to return a tuple (str, dict)
             * The first element of the tuple will be the response status code
             * The second element of the tuple will be the body of the response
 
         :param exception: The exception to handle
         :type exception: Exception"""
 
-        def decorator(function):
+        def inner(function):
             def wrapper(*args, **kwargs):
-                return function(*args, **kwargs)
+                result = function(*args, **kwargs)
+                return result
 
-            self.add_exception(exception, wrapper)
+            self.exceptions.update({exception: wrapper})
             return wrapper
 
-        return decorator
+        return inner
 
-    def on_finished(self):
+    def on_finished(self, function):
         """Decorator to quickly add a function to call after the response is sent
 
         :Example usage:
@@ -102,38 +90,31 @@ class Endpoint:
 
         :NOTE: In this case the on_finished function doesn't need to return anyting"""
 
-        def decorator(function):
-            def wrapper(*args, **kwargs):
-                return function(*args, **kwargs)
+        def wrapper(*args, **kwargs):
+            result = function(*args, **kwargs)
+            return result
 
-            self._on_finished = wrapper
-            return wrapper
-
-        return decorator
+        self._on_finished = wrapper
+        return wrapper
 
     def run(self, *args, **kwargs):
         """Function to perform all the needed operations whenever the endpoint is requested
 
-        :return: tuple like (a_status_code, response_body, on_finished_function)
+        :return: tuple like (status_code, response_body, on_finished_function)
         :rtype: tuple
         """
-        if not self.inner_function:
-            raise NotImplementedError()
-
         try:
-            print(self._on_finished)
             status_code, body = self.inner_function(*args, **kwargs)
-            status_code = status_code if status_code else self.default_status_code
-            body = body if body else {}
             return status_code, body, self._on_finished
-
         except Exception as e:
+            func = None
             for exception in self.exceptions.keys():
                 if isinstance(e, exception):
-                    on_error_func = self.exceptions.get(exception)
-                    status_code, body = on_error_func()
-                    status_code = (
-                        status_code if status_code else "500 INTERNAL SERVER ERROR"
-                    )
-                    body = body if body else {}
-                    return status_code, body, None
+                    func = self.exceptions.get(exception)
+                    break
+
+            if not func:
+                return StatusCode._500, {}, self._on_finished
+
+            status_code, body = func()
+            return status_code, body, self._on_finished

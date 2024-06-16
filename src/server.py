@@ -82,31 +82,39 @@ class Server:
         kw = None if kw == {} else kw
         return (endpoint, kw)
 
+    def create_header(self, status_code, endpoint_content_tyoe="application/json"):
+        return (
+            f"HTTP/1.0 {status_code}\r\nContent-type: {endpoint_content_tyoe}\r\n\r\n"
+        )
+
     def manage_request(self, request: str):
         """Manages the request, executing endpoint if found
 
         :param request: Request
         :type request: str
         """
+
         try:
             endpoint, kw = self.find_req_endpoint(request)
-
             if endpoint not in self.endpoints.keys():
-                return StatusCode._404, "{}"
+                return (
+                    self.create_header(StatusCode._404),
+                    "{}",
+                    lambda: print("Endpoint not found"),
+                )
 
             endpoint = self.endpoints.get(endpoint)
 
-            status_code, body, on_finished = endpoint.run(**kw)
+            status_code, body, on_finished = endpoint.run()
+
+            headers = self.create_header(status_code, endpoint.content_type)
+            return headers, ujson.dumps(body), on_finished
+        except Exception as e:
+            print(e)
             return (
-                f"HTTP/1.0 {status_code}\r\nContent-type: {endpoint.content_type}\r\n\r\n",
-                body,
-                on_finished,
-            )
-        except Exception:
-            return (
-                f"HTTP/1.0 {StatusCode._500}\r\nContent-type: application/json\r\n\r\n",
+                self.create_header(StatusCode._500),
                 "{}",
-                None,
+                lambda: print("Internal server error"),
             )
 
     def start(self):
